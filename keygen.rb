@@ -5,16 +5,17 @@ group = ECDSA::Group::Secp256k1
 private_key = 1 + SecureRandom.random_number(group.order - 1)
 puts  private_key
 public_key = group.generator.multiply_by_scalar(private_key)
-#puts 'public key: '
-#puts '  x: %#x' % public_key.x
-#puts '  y: %#x' % public_key.y
+public_key_string=ECDSA::Format::PointOctetString.encode(public_key, compression: true)
+p public_key_string
 
- #= ECDSA::Format::PointOctetString.encode(public_key, compression: true)
-public_key_string= "04#{public_key.x}#{public_key.y}"
-require 'digest/md5'
-require 'digest'
-pub_hash=Digest::SHA256.new << public_key_string
-p pub_hash
+
+
+
+
+#require 'digest/md5'
+#require 'digest'
+#pub_hash=Digest::SHA256.new << public_key_string
+#p pub_hash
 
 #~ public_key = ECDSA::Format::PointOctetString.decode(public_key_string, group)
 
