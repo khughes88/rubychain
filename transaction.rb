@@ -34,7 +34,10 @@ return res
 end
 
 
-def validate_transaction(pubkey,signature_string,trans)	
+def validate_transaction(trans)	
+pubkey=trans['pubkey']
+signature_string=trans['signature_string']
+trans=trans['trans']
 group = ECDSA::Group::Secp256k1
 digest = Digest::SHA256.digest(trans)
 signature = ECDSA::Format::SignatureDerString.decode(signature_string)
@@ -49,4 +52,4 @@ trans=create_transaction(keys['privkey'],keys['pubkey'],'previoustransctionhash'
 p trans['pubkey']
 p trans['signature_string']
 
-validate_transaction(trans['pubkey'],trans['signature_string'],trans['trans'])	
+validate_transaction(trans)	
