@@ -21,6 +21,9 @@ GegI9tPs+tprIyBOgXLbJ0/9QUv8lf0vhkW5nF/nYuc6mKQ=
 gods_private_key=OpenSSL::PKey::RSA.new(g_priv_k)
 gods_public_key=OpenSSL::PKey::RSA.new(g_pub_k)
 
+key = OpenSSL::PKey::EC.new('secp256k1')
+p key
+
 transaction="{'input':'0000000000000000000000000000000000000000000000000000000000000000', 'output1':'','output2':'','hashofprevious':'','amount':'','timestamp':''}"
 p transaction.bytesize
 gods_private_key
