@@ -6,9 +6,10 @@ require 'securerandom'
 def generate_keys
 group = ECDSA::Group::Secp256k1
 private_key = 1 + SecureRandom.random_number(group.order - 1)
-puts  private_key
+p  private_key
 public_key = group.generator.multiply_by_scalar(private_key)
 public_key_string=ECDSA::Format::PointOctetString.encode(public_key, compression: true)
+#public_key_string="04#{public_key.x}#{public_key}"
 p public_key_string
 keys=Hash.new
 keys['privkey']=private_key
@@ -36,12 +37,14 @@ end
 
 def validate_transaction(trans)	
 pubkey=trans['pubkey']
+p pubkey.bytesize
 signature_string=trans['signature_string']
 trans=trans['trans']
 group = ECDSA::Group::Secp256k1
 digest = Digest::SHA256.digest(trans)
 signature = ECDSA::Format::SignatureDerString.decode(signature_string)
 public_key = ECDSA::Format::PointOctetString.decode(pubkey, group)
+p "decoded #{public_key}"
 valid = ECDSA.valid_signature?(public_key, digest, signature)
 puts "valid: #{valid}"
 return valid
