@@ -1,9 +1,10 @@
 require 'rubygems'
-require 'ecdsa'
+
 require 'json'
 require 'digest'
 require 'securerandom'
 require 'base58'
+require 'ecdsa'
 
 def generate_keys
 group = ECDSA::Group::Secp256k1
@@ -27,12 +28,12 @@ checksum=sha256_2[0..8]
 #Add the 4 checksum bytes from stage 7 at the end of extended RIPEMD-160 hash 
 #from stage 4. This is the 25-byte binary Bitcoin Address. 
 address="00#{ripemd}#{checksum}"
-p address.bytesize
 address=Base58.encode(address.to_i(16))
 p "address: #{address}"
 keys=Hash.new
 keys['privkey']=private_key
 keys['pubkey']= public_key_string
+keys['pubaddress']=address
 return keys	
 end	
 
