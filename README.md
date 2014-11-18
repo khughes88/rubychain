@@ -22,4 +22,8 @@ I also took the x and y coordinates of the string and used them to create a cond
 
 This is the 25-byte binary Bitcoin Address. 
 
+###User Interface
+18/11/2014: I'm starting with Shoes on this. So far so good. learning how to package all of this up will mean a lot. I'll figure that out at a later date 
 
+###Data store
+18/11/2014: I'm considering using PStore to get this started.
