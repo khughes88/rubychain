@@ -5,6 +5,7 @@ require 'digest'
 require 'securerandom'
 require 'base58'
 require 'ecdsa'
+require 'kirbybase'
 
 def generate_keys
 group = ECDSA::Group::Secp256k1
@@ -34,7 +35,17 @@ keys=Hash.new
 keys['privkey']=private_key
 keys['pubkey']= public_key_string
 keys['pubaddress']=address
-return keys	
+return keys
+
+db = KirbyBase.new
+begin
+keys_tbl= db.get_table(:keys)
+rescue
+db.create_table(:keys)
+end
+
+
+
 end	
 
 
