@@ -5,7 +5,6 @@ require 'digest'
 require 'securerandom'
 require 'base58'
 require 'ecdsa'
-require 'kirbybase'
 require 'openssl'
 
 
@@ -108,6 +107,7 @@ end
 
 
 def pubkey_to_address(pubkey)
+#1 hash 160
 hash160_to_address( hash160(pubkey) )
 end
 
@@ -117,31 +117,72 @@ end
 
 def generate_key
 key = bitcoin_elliptic_curve.generate_key
-#p key
-#inspect_key( key )
-end
-
-def generate_address
-prvkey, pubkey = generate_key
-p pubkey_to_address(pubkey)
-#p prvkey, pubkey, 
-p hash160(pubkey) 
-end
-
-generate_address
-
-
-
-#----------------------------------------------------------------
-# hash160 is a 20 bytes (160bits) rmd610-sha256 hexdigest.
-def hash160(hex)
-bytes = [hex].pack("H*")
-Digest::RMD160.hexdigest Digest::SHA256.digest(bytes)
+inspect_key( key )
 end
 
 def inspect_key(key)
 [ key.private_key_hex, key.public_key_hex ]
 end
+
+module ::OpenSSL
+class BN
+def self.from_hex(hex); new(hex, 16); end
+def to_hex; to_i.to_s(16); end
+def to_mpi; to_s(0).unpack("C*"); end
+end
+class PKey::EC
+def private_key_hex; private_key.to_hex.rjust(64, '0'); end
+def public_key_hex; public_key.to_hex.rjust(130, '0'); end
+def pubkey_compressed?; public_key.group.point_conversion_form == :compressed; end
+end
+class PKey::EC::Point
+def self.from_hex(group, hex)
+new(group, BN.from_hex(hex))
+end
+def to_hex; to_bn.to_hex; end
+def self.bn2mpi(hex) BN.from_hex(hex).to_mpi; end
+end
+end
+
+def generate_address
+prvkey, pubkey = generate_key
+[ pubkey_to_address(pubkey), prvkey, pubkey, hash160(pubkey) ]
+end
+
+def new_address
+addr=generate_address
+p "address #{generate_address[0]}"
+p "private key #{generate_address[1]}"
+p "public key #{generate_address[2]}"
+p "public key hash160d #{generate_address[3]}"
+
+
+keys=Hash.new
+keys['private']=addr[1]
+keys['public']=addr[2]
+keys['address']=addr[0]
+keys['hash160_address']=addr[3]
+
+
+keys_json=keys.to_json.gsub("\\","")
+p keys_json
+open('./keys.txt','a') { |f|
+f<<keys_json
+}
+return keys
+end
+
+
+def sign_message(private_key_hex, public_key_hex, message)
+hash = bitcoin_signed_message_hash(message)
+signature = OpenSSL_EC.sign_compact(hash, private_key_hex, public_key_hex)
+{ 'address' => pubkey_to_address(public_key_hex), 'message' => message, 'signature' => [ signature ].pack("m0") }
+end
+
+
+
+#----------------------------------------------------------------
+
 
 def bitcoin_hash(hex)
 Digest::SHA256.digest(
@@ -229,11 +270,7 @@ def bitcoin_signed_message_hash(message)
 data = "\x18Bitcoin Signed Message:\n" + [message.bytesize].pack("C") + message
 Digest::SHA256.digest(Digest::SHA256.digest(data))
 end
-def sign_message(private_key_hex, public_key_hex, message)
-hash = bitcoin_signed_message_hash(message)
-signature = OpenSSL_EC.sign_compact(hash, private_key_hex, public_key_hex)
-{ 'address' => pubkey_to_address(public_key_hex), 'message' => message, 'signature' => [ signature ].pack("m0") }
-end
+
 def verify_message(address, signature, message)
 hash = bitcoin_signed_message_hash(message)
 signature = signature.unpack("m0")[0] rescue nil # decode base64
